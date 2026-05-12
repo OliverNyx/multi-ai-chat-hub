@@ -10,9 +10,7 @@
 
 A modern, responsive AI chat bot application supporting multiple AI providers including Google Gemini, Groq, OpenRouter, Hugging Face, and OpenAI and enable to store the chat history. Built with React, TypeScript, and Vite including business-insights analytics and performance dashboard, typewriter effect, and animated icons for the best user experience.
 
-- **Live-Demo:** [https://multi-ai-chat-hub.vercel.app/](https://multi-ai-chat-hub.vercel.app/)
-
-**Author:** [Arnob Mahmud](https://www.arnobmahmud.com/) | **License:** [MIT](./LICENSE)
+**Maintainer:** [olivernyx](https://github.com/OliverNyx) · **Portfolio:** [olivernyx.vercel.app](https://olivernyx.vercel.app/) · **Repository:** [multi-ai-chat-hub](https://github.com/OliverNyx/multi-ai-chat-hub) · **License:** [MIT](./LICENSE)
 
 > 🌟 **Open Source Project** - This is an open-source project. Feel free to use, enhance, and extend this project to the next level! Contributions, improvements, forks, and stars are always welcome. Together, we can make this portfolio template even better!
 
@@ -101,7 +99,7 @@ AI Chat Hub is a comprehensive, production-ready chat application that integrate
 ## Project Structure
 
 ```bash
-ai-chat-bot/
+multi-ai-chat-hub/
 ├── api/                        # Vercel serverless functions
 │   ├── events.ts              # POST /api/events - Track analytics events
 │   ├── usage.ts               # GET /api/usage - Usage statistics
@@ -158,8 +156,8 @@ ai-chat-bot/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/ai-chat-bot.git
-   cd ai-chat-bot
+   git clone https://github.com/OliverNyx/multi-ai-chat-hub.git
+   cd multi-ai-chat-hub
    ```
 
 2. **Install dependencies**
@@ -861,7 +859,7 @@ This project demonstrates:
 
 Feel free to use this project repository and extend this project further!
 
-If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://arnob-mahmud.vercel.app/](https://arnob-mahmud.vercel.app/).
+If you have any questions or want to share your work, reach out via [GitHub](https://github.com/OliverNyx/multi-ai-chat-hub) or the portfolio at [https://olivernyx.vercel.app/](https://olivernyx.vercel.app/).
 
 **Enjoy building and learning!** 🚀
 

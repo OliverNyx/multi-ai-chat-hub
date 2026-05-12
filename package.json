@@ -1,5 +1,15 @@
 {
   "name": "ai-chat-hub",
+  "author": "olivernyx",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OliverNyx/multi-ai-chat-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OliverNyx/multi-ai-chat-hub/issues"
+  },
+  "homepage": "https://olivernyx.vercel.app/",
   "private": true,
   "version": "0.2.1",
   "type": "module",
