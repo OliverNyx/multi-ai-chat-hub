@@ -54,7 +54,7 @@ const ChatBotApp: React.FC<ChatBotAppProps> = ({
   const chatEndRef = useRef<HTMLDivElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const providerDropdownRef = useRef<HTMLDivElement>(null);
-  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { displayText: chatTitleText } = useTypewriter({
     text: "Chat with AI",
@@ -68,11 +68,15 @@ const ChatBotApp: React.FC<ChatBotAppProps> = ({
   }, [activeChat, chats]);
 
   useEffect(() => {
-    if (activeChat) {
-      const storedMessages: Message[] = JSON.parse(
-        localStorage.getItem(activeChat) || "[]"
-      );
-      setMessages(storedMessages);
+    if (!activeChat) return;
+    try {
+      const raw = localStorage.getItem(activeChat);
+      const storedMessages: Message[] = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(storedMessages)) {
+        setMessages(storedMessages);
+      }
+    } catch {
+      setMessages([]);
     }
   }, [activeChat]);
 
@@ -179,7 +183,7 @@ const ChatBotApp: React.FC<ChatBotAppProps> = ({
         (() => {
           const newSessionId = `session_${Date.now()}_${Math.random()
             .toString(36)
-            .substr(2, 9)}`;
+            .slice(2, 11)}`;
           localStorage.setItem("sessionId", newSessionId);
           return newSessionId;
         })();

@@ -1,5 +1,29 @@
 import { AIProvider, getProvider, AI_PROVIDERS } from "./aiProviders";
 
+function extractGeminiText(data: unknown): string | null {
+  const d = data as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = d?.candidates?.[0]?.content?.parts?.[0]?.text;
+  return typeof text === "string" ? text.trim() : null;
+}
+
+function extractChatCompletionText(data: unknown): string | null {
+  const d = data as { choices?: { message?: { content?: string | null } }[] };
+  const text = d?.choices?.[0]?.message?.content;
+  return typeof text === "string" ? text.trim() : null;
+}
+
+interface OpenAIOutputTextBlock {
+  type: string;
+  text?: string;
+}
+
+interface OpenAIResponsesPayload {
+  output?: { content?: OpenAIOutputTextBlock[] }[];
+  choices?: { message?: { content?: string } }[];
+}
+
 export interface AIChatRequest {
   message: string;
   provider?: AIProvider;
@@ -83,7 +107,9 @@ class AIService {
     }
 
     const data = await response.json();
-    return data.candidates[0].content.parts[0].text.trim();
+    const text = extractGeminiText(data);
+    if (text) return text;
+    throw new Error("Gemini returned an unexpected response shape (no text).");
   }
 
   private async callGroqAPI(message: string, apiKey: string): Promise<string> {
@@ -105,6 +131,12 @@ class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        this.markRateLimited("groq");
+        throw new Error(
+          `Groq API rate limit exceeded. Try another provider or wait a few minutes.`
+        );
+      }
       throw new Error(
         `Groq API error: ${response.status} ${
           response.statusText
@@ -113,7 +145,9 @@ class AIService {
     }
 
     const data = await response.json();
-    return data.choices[0].message.content.trim();
+    const text = extractChatCompletionText(data);
+    if (text) return text;
+    throw new Error("Groq returned an unexpected response shape (no content).");
   }
 
   private async callOpenRouterAPI(
@@ -140,6 +174,12 @@ class AIService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        this.markRateLimited("openrouter");
+        throw new Error(
+          `OpenRouter API rate limit exceeded. Try another provider or wait a few minutes.`
+        );
+      }
       throw new Error(
         `OpenRouter API error: ${response.status} ${
           response.statusText
@@ -148,7 +188,11 @@ class AIService {
     }
 
     const data = await response.json();
-    return data.choices[0].message.content.trim();
+    const text = extractChatCompletionText(data);
+    if (text) return text;
+    throw new Error(
+      "OpenRouter returned an unexpected response shape (no content)."
+    );
   }
 
   private async callHuggingFaceAPI(
@@ -211,9 +255,10 @@ class AIService {
           }
 
           // Extract the generated text from the response
-          if (data?.choices?.[0]?.message?.content) {
+          const reply = extractChatCompletionText(data);
+          if (reply) {
             console.log(`✅ Response from ${model}`);
-            return data.choices[0].message.content.trim();
+            return reply;
           }
 
           return "I'm sorry, I couldn't process that.";
@@ -279,25 +324,22 @@ class AIService {
       );
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as OpenAIResponsesPayload;
     // New Responses API structure
-    if (data.output && data.output.length > 0) {
-      const outputItem = data.output[0];
-      if (outputItem.content && outputItem.content.length > 0) {
-        const textContent = outputItem.content.find(
-          (item: any) => item.type === "output_text"
-        );
-        if (textContent && textContent.text) {
-          return textContent.text.trim();
-        }
+    const outputItem = data.output?.[0];
+    const blocks = outputItem?.content;
+    if (blocks?.length) {
+      const textContent = blocks.find((item) => item.type === "output_text");
+      if (textContent?.text) {
+        return textContent.text.trim();
       }
     }
 
-    // Fallback to old format if needed
-    return (
-      data.choices?.[0]?.message?.content?.trim() ||
-      "I'm sorry, I couldn't process that."
-    );
+    // Fallback to chat-completions shape if present
+    const fallback = extractChatCompletionText(data);
+    if (fallback) return fallback;
+
+    return "I'm sorry, I couldn't process that.";
   }
 
   async getChatResponse(request: AIChatRequest): Promise<AIChatResponse> {

@@ -19,15 +19,20 @@ export const useTypewriter = ({
     // Reset state when text changes
     setDisplayText("");
     setCurrentIndex(0);
-    setIsComplete(false);
+    setIsComplete(text.length === 0);
   }, [text]);
 
   useEffect(() => {
-    // Initial delay before starting to type
-    if (currentIndex === 0 && delay > 0) {
+    if (text.length === 0) {
+      return undefined;
+    }
+
+    // Initial delay before starting to type (or immediate kickoff when delay is 0)
+    if (currentIndex === 0) {
+      const wait = delay > 0 ? delay : 0;
       const delayTimeout = setTimeout(() => {
         setCurrentIndex(1);
-      }, delay);
+      }, wait);
       return () => clearTimeout(delayTimeout);
     }
 
@@ -35,17 +40,17 @@ export const useTypewriter = ({
     if (currentIndex > 0 && currentIndex <= text.length) {
       const timeout = setTimeout(() => {
         setDisplayText(text.slice(0, currentIndex));
-        setCurrentIndex(currentIndex + 1);
+        if (currentIndex === text.length) {
+          setIsComplete(true);
+        }
+        setCurrentIndex((i) => i + 1);
       }, speed);
 
       return () => clearTimeout(timeout);
     }
 
-    // Mark as complete when done
-    if (currentIndex > text.length && !isComplete) {
-      setIsComplete(true);
-    }
-  }, [currentIndex, text, speed, delay, isComplete]);
+    return undefined;
+  }, [currentIndex, text, speed, delay]);
 
   return { displayText, isComplete };
 };

@@ -16,6 +16,24 @@ interface Chat {
   messages: Message[];
 }
 
+function parseStoredChats(raw: string | null): Chat[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is Chat =>
+        item !== null &&
+        typeof item === "object" &&
+        typeof (item as Chat).id === "string" &&
+        typeof (item as Chat).displayId === "string" &&
+        Array.isArray((item as Chat).messages)
+    );
+  } catch {
+    return [];
+  }
+}
+
 const App = () => {
   const [currentView, setCurrentView] = useState<"start" | "chat" | "insights">(
     "start"
@@ -24,9 +42,7 @@ const App = () => {
   const [activeChat, setActiveChat] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedChats: Chat[] = JSON.parse(
-      localStorage.getItem("chats") || "[]"
-    );
+    const storedChats = parseStoredChats(localStorage.getItem("chats"));
     setChats(storedChats);
 
     if (storedChats.length > 0) {
